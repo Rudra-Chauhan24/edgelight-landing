@@ -24,7 +24,7 @@ This repository contains the marketing website and client-facing download portal
 
 ## Features
 
-- **In-Browser Simulator**: Interactive canvas demonstrating color temperature (3000K to 6500K) and ring thickness controls directly in the browser.
+- **In-Browser Simulator**: Interactive canvas demonstrating color temperature (3744K to 6500K) and ring thickness controls directly in the browser.
 - **Direct Downloads**: Hosts the standalone portable executable and standard Windows installer.
 - **Payment Integration**: Embedded checkout via Razorpay links and dynamic UPI QR code generator.
 - **Responsive Layout**: Dark-mode glassmorphic interface built with vanilla HTML5, CSS3, and JavaScript with zero external frameworks.
