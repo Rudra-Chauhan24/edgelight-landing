@@ -53,8 +53,7 @@ landing-page/
 ├── index.html                       # Landing page markup
 ├── landing.css                      # Styling and responsive design
 ├── landing.js                       # Simulator logic and interaction handlers
-├── Edge Light 1.0.4.exe             # Portable Windows binary
-├── Edge Light Setup 1.0.4.exe       # Windows installer binary
+├── Edge.Light.Setup.1.0.12.exe       # Windows installer binary
 ├── package.json                     # Local development scripts
 └── README.md
 ```
