@@ -79,7 +79,7 @@
     const downloadButtons = document.querySelectorAll('a[download]');
     downloadButtons.forEach((btn) => {
       btn.addEventListener('click', () => {
-        const fileName = btn.getAttribute('download') || 'Edge.Light.Setup.1.0.12.exe';
+        const fileName = btn.getAttribute('download') || 'Edge.Light.Setup.1.0.13.exe';
         showToast(`Starting download for ${fileName}...`);
       });
     });
