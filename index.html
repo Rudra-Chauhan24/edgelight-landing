@@ -110,6 +110,73 @@
         </span>
       </div>
 
+      <!-- Studio Screen Showcase & Live Ring Simulator -->
+      <div class="product-preview-wrap">
+        <div class="screen-frame">
+          <div class="screen-camera-dot" aria-hidden="true"></div>
+          <div class="screen-inner" id="screenInner">
+            <!-- Simulated Perimeter Ring Glow -->
+            <div class="screen-edge-glow" id="screenEdgeGlow" aria-hidden="true"></div>
+            
+            <!-- Video Meeting Mockup -->
+            <div class="screen-content">
+              <div class="call-mockup-header">
+                <span class="call-badge" id="callBadge"><span class="live-dot" id="liveDot"></span> Camera Active · Zoom & Meet Detected</span>
+                <span class="call-timer" id="callTimer">00:18:42</span>
+              </div>
+              <div class="call-stage">
+                <div class="avatar-glow-ring" id="avatarGlowRing">
+                  <div class="avatar-preview">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                  </div>
+                </div>
+                <div class="call-caption" id="callCaption">Perimeter studio ring naturally lights your face without extra hardware</div>
+
+                <!-- Live Kelvin Presets -->
+                <div class="sim-presets" role="group" aria-label="Kelvin Color Temperature Presets">
+                  <button type="button" class="sim-preset-btn" data-temp="3744" title="Warm Sunset Glow">3744K Warm</button>
+                  <button type="button" class="sim-preset-btn active" data-temp="4800" title="Balanced Studio Light">4800K Neutral</button>
+                  <button type="button" class="sim-preset-btn" data-temp="6500" title="Crisp Daylight Glow">6500K Cool</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Floating Right-Edge Dock Simulator -->
+            <div class="sim-dock" aria-label="Edge Light Interactive Dock Simulator">
+              <div class="sim-dock-pill">
+                <button type="button" class="sim-dock-btn active" id="simPowerBtn" title="Click to Toggle Studio Ring Light">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+                </button>
+                <div class="sim-dock-slider-wrap" id="simSliderWrap" title="Click or Drag to Adjust Color Temperature">
+                  <div class="sim-dock-slider" id="simSlider" style="--slider-pct: 68%;"></div>
+                </div>
+                <div class="sim-dock-temp" id="simTempDisplay">4800K</div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- Real-Time Metrics & Dynamic Heartbeat -->
+      <div class="live-metrics-bar">
+        <div class="metric-item">
+          <span class="metric-status-dot"></span>
+          <span class="metric-label">Cloud Sync:</span>
+          <strong class="metric-value" id="liveSyncStatus">Active · 99.9%</strong>
+        </div>
+        <div class="metric-divider">•</div>
+        <div class="metric-item">
+          <span class="metric-label">Calls Illuminated:</span>
+          <strong class="metric-value" id="liveCallsCount">1,480+ Today</strong>
+        </div>
+        <div class="metric-divider">•</div>
+        <div class="metric-item">
+          <span class="metric-label">Verified Build:</span>
+          <strong class="metric-value" id="liveVersionDisplay">v1.0.15 Stable</strong>
+        </div>
+      </div>
+
     </div>
   </header>
 
