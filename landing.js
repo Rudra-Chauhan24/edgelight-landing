@@ -19,7 +19,9 @@
   window.__edgeLightLandingInit = true;
 
   document.addEventListener('DOMContentLoaded', () => {
+    initTheme();
     initSmoothScroll();
+    initScrollReveals();
     initFAQ();
     initDownloadFeedback();
     initRazorpayCheckout();
@@ -28,6 +30,62 @@
     initRealtimeData();
     initFeatureInteractivity();
   });
+
+  /* ─── Apple-Style Theme Management (Light & Dark Mode) ────────── */
+  function initTheme() {
+    const toggleBtn = document.getElementById('themeToggle');
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+
+    function getEffectiveTheme() {
+      try {
+        const saved = localStorage.getItem('edgelight-theme');
+        if (saved === 'light' || saved === 'dark') return saved;
+      } catch (_) {}
+      return mediaQuery.matches ? 'dark' : 'light';
+    }
+
+    function applyTheme(theme, isExplicit) {
+      document.documentElement.setAttribute('data-theme', theme);
+      document.documentElement.style.colorScheme = theme;
+      if (isExplicit) {
+        try {
+          localStorage.setItem('edgelight-theme', theme);
+        } catch (_) {}
+      }
+      if (toggleBtn) {
+        const nextTheme = theme === 'dark' ? 'light' : 'dark';
+        toggleBtn.setAttribute('aria-label', `Switch to ${nextTheme} mode`);
+        toggleBtn.setAttribute('title', `Switch to ${nextTheme} mode`);
+        toggleBtn.setAttribute('aria-pressed', theme === 'light' ? 'true' : 'false');
+      }
+    }
+
+    // Initialize toggle state with active theme
+    const currentTheme = getEffectiveTheme();
+    applyTheme(currentTheme, false);
+
+    // Click handler for theme toggle
+    if (toggleBtn) {
+      toggleBtn.addEventListener('click', () => {
+        const activeTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+        const newTheme = activeTheme === 'dark' ? 'light' : 'dark';
+        applyTheme(newTheme, true);
+        showToast(newTheme === 'dark' ? '🌙 Dark Mode enabled' : '☀️ Light Mode enabled');
+      });
+    }
+
+    // Dynamic OS preference listener (only fires if user hasn't chosen an explicit override)
+    if (mediaQuery.addEventListener) {
+      mediaQuery.addEventListener('change', (e) => {
+        try {
+          const saved = localStorage.getItem('edgelight-theme');
+          if (!saved) {
+            applyTheme(e.matches ? 'dark' : 'light', false);
+          }
+        } catch (_) {}
+      });
+    }
+  }
 
   /* ─── Universal Smooth Scrolling & Back-to-Top ─────────────────── */
   function initSmoothScroll() {
@@ -56,6 +114,82 @@
           }
         }
       });
+    });
+
+    // Sticky navbar frosted glass elevation on scroll
+    const navbar = document.querySelector('.navbar');
+    if (navbar) {
+      let isTicking = false;
+      const updateNavbar = () => {
+        if (window.scrollY > 16) {
+          navbar.classList.add('scrolled');
+        } else {
+          navbar.classList.remove('scrolled');
+        }
+        isTicking = false;
+      };
+      window.addEventListener('scroll', () => {
+        if (!isTicking) {
+          window.requestAnimationFrame(updateNavbar);
+          isTicking = true;
+        }
+      }, { passive: true });
+      updateNavbar();
+    }
+  }
+
+  /* ─── Apple Scroll-Triggered Reveal Animations ──────────────────── */
+  function initScrollReveals() {
+    const prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    // Staggered grid groups
+    const staggerGroups = [
+      { selector: '.features-grid .feature-card', baseDelay: 60 },
+      { selector: '.pricing-grid .pricing-card', baseDelay: 80 },
+      { selector: '.faq-accordion .faq-item', baseDelay: 50 },
+      { selector: '.step-list li', baseDelay: 60 }
+    ];
+
+    staggerGroups.forEach(group => {
+      const items = document.querySelectorAll(group.selector);
+      items.forEach((item, idx) => {
+        item.classList.add('reveal-init');
+        if (!prefersReducedMotion) {
+          item.style.transitionDelay = `${idx * group.baseDelay}ms`;
+        }
+      });
+    });
+
+    // Single reveal elements
+    const singleElements = document.querySelectorAll(
+      '.section-header, .upi-banner, .install-method-card, .footer-top'
+    );
+    singleElements.forEach(el => {
+      el.classList.add('reveal-init');
+    });
+
+    if (prefersReducedMotion || !('IntersectionObserver' in window)) {
+      document.querySelectorAll('.reveal-init').forEach(el => {
+        el.classList.add('reveal-visible');
+      });
+      return;
+    }
+
+    const revealObserver = new IntersectionObserver((entries, observer) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('reveal-visible');
+          // Once revealed, keep in place to avoid distracting replays
+          observer.unobserve(entry.target);
+        }
+      });
+    }, {
+      rootMargin: '0px 0px -40px 0px',
+      threshold: 0.1
+    });
+
+    document.querySelectorAll('.reveal-init').forEach(el => {
+      revealObserver.observe(el);
     });
   }
 
@@ -120,7 +254,7 @@
     });
   }
 
-  /* ─── Toast Notification System ───────────────────────────────── */
+  /* ─── Toast Notification System (Theme Adaptive) ──────────────── */
   function showToast(message) {
     let toast = document.getElementById('landingToast');
     if (!toast) {
@@ -130,19 +264,15 @@
       toast.style.bottom = '28px';
       toast.style.left = '50%';
       toast.style.transform = 'translateX(-50%) translateY(20px)';
-      toast.style.backgroundColor = 'rgba(18, 20, 29, 0.94)';
-      toast.style.border = '1px solid rgba(245, 158, 11, 0.4)';
-      toast.style.color = '#ffffff';
       toast.style.padding = '12px 24px';
       toast.style.borderRadius = '999px';
       toast.style.fontSize = '14px';
       toast.style.fontWeight = '500';
-      toast.style.boxShadow = '0 12px 32px rgba(0, 0, 0, 0.65), 0 0 20px rgba(245, 158, 11, 0.2)';
       toast.style.backdropFilter = 'blur(16px)';
       toast.style.webkitBackdropFilter = 'blur(16px)';
       toast.style.zIndex = '9999';
       toast.style.opacity = '0';
-      toast.style.transition = 'opacity 250ms ease, transform 250ms cubic-bezier(0.16, 1, 0.3, 1)';
+      toast.style.transition = 'opacity 250ms ease, transform 250ms cubic-bezier(0.16, 1, 0.3, 1), background-color 200ms ease, color 200ms ease';
       toast.style.pointerEvents = 'none';
       toast.style.display = 'flex';
       toast.style.alignItems = 'center';
@@ -150,9 +280,17 @@
       document.body.appendChild(toast);
     }
 
-    const cleanMsg = message.replace(/^[✨📋⚡]\s*/, '');
-    const icon = message.startsWith('📋') ? '📋' : message.startsWith('⚡') ? '⚡' : '✨';
-    toast.innerHTML = `<span style="color:#fbbf24">${icon}</span> ${cleanMsg}`;
+    const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+    toast.style.backgroundColor = isLight ? 'rgba(255, 255, 255, 0.96)' : 'rgba(18, 20, 29, 0.94)';
+    toast.style.border = isLight ? '1px solid rgba(217, 119, 6, 0.35)' : '1px solid rgba(245, 158, 11, 0.4)';
+    toast.style.color = isLight ? '#0f172a' : '#ffffff';
+    toast.style.boxShadow = isLight 
+      ? '0 12px 32px rgba(15, 23, 42, 0.12), 0 0 20px rgba(245, 158, 11, 0.15)'
+      : '0 12px 32px rgba(0, 0, 0, 0.65), 0 0 20px rgba(245, 158, 11, 0.2)';
+
+    const cleanMsg = message.replace(/^[✨📋⚡🌙☀️]\s*/, '');
+    const icon = message.startsWith('📋') ? '📋' : message.startsWith('⚡') ? '⚡' : message.startsWith('🌙') ? '🌙' : message.startsWith('☀️') ? '☀️' : '✨';
+    toast.innerHTML = `<span style="color:${isLight ? '#d97706' : '#fbbf24'}">${icon}</span> ${cleanMsg}`;
 
     requestAnimationFrame(() => {
       toast.style.opacity = '1';
