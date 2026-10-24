@@ -403,6 +403,7 @@
       () => {
         const powerBtn = document.getElementById('simPowerBtn');
         if (powerBtn) powerBtn.click();
+        else showToast('✨ Studio Ring Light: Illuminates screen perimeter automatically on video calls.');
       },
       () => {
         showToast('🖱️ Normal App Interaction: Window clicks and tab switching pass directly to your desktop tools.');
@@ -412,6 +413,8 @@
         if (presets.length) {
           const next = Array.from(presets).find(b => !b.classList.contains('active')) || presets[0];
           next.click();
+        } else {
+          showToast('🌡️ Color Temperature: Adjustable from 3744K warm sunset to 6500K crisp cool daylight.');
         }
       },
       () => {
