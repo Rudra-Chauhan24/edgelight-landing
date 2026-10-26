@@ -144,6 +144,7 @@
           if (prefersReduced) {
             window.scrollTo(0, 0);
           } else {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
             smoothScrollTo(0, 600);
           }
           if (window.history && window.history.pushState) {
@@ -357,7 +358,7 @@
     const downloadButtons = document.querySelectorAll('a[download]');
     downloadButtons.forEach((btn) => {
       btn.addEventListener('click', () => {
-        const fileName = btn.getAttribute('download') || 'Edge.Light.Setup.1.0.15.exe';
+        const fileName = btn.getAttribute('download') || 'Edge.Light.Setup.1.0.16.exe';
         showToast(`⚡ Starting download for ${fileName} (82 MB)... Run setup to start your 3-day free trial!`);
       });
     });

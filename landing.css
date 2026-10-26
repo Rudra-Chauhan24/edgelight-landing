@@ -131,7 +131,7 @@ html[data-theme="light"] {
 }
 
 section[id], header[id] {
-  scroll-margin-top: 72px;
+  scroll-margin-top: 84px;
 }
 
 body {
