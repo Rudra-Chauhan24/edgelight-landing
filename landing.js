@@ -22,6 +22,7 @@
     initTheme();
     initSmoothScroll();
     initScrollReveals();
+    initAmbientDepth();
     initFAQ();
     initDownloadFeedback();
     initRazorpayCheckout();
@@ -87,15 +88,67 @@
     }
   }
 
-  /* ─── Universal Smooth Scrolling & Back-to-Top ─────────────────── */
+  /* ─── Apple-Style Interruptible Smooth Scrolling & Navigation ─── */
   function initSmoothScroll() {
     const anchors = document.querySelectorAll('a[href^="#"]');
+    let activeScrollAnimation = null;
+
+    function cancelActiveScroll() {
+      if (activeScrollAnimation) {
+        cancelAnimationFrame(activeScrollAnimation);
+        activeScrollAnimation = null;
+      }
+    }
+
+    // Cancel smooth scroll immediately if user takes over with wheel, touch, or keyboard
+    ['wheel', 'touchmove', 'pointerdown', 'keydown'].forEach((evt) => {
+      window.addEventListener(evt, cancelActiveScroll, { passive: true });
+    });
+
+    function smoothScrollTo(targetY, duration = 650) {
+      cancelActiveScroll();
+      const startY = window.pageYOffset || document.documentElement.scrollTop;
+      const distance = targetY - startY;
+      if (Math.abs(distance) < 2) return;
+
+      const startTime = performance.now();
+
+      // Apple cubic-bezier(0.16, 1, 0.3, 1) ease-out curve approximation:
+      // Begins with natural momentum, then decelerates smoothly to an elegant standstill.
+      function easeOutApple(t) {
+        return 1 - Math.pow(1 - t, 4);
+      }
+
+      function step(now) {
+        const elapsed = now - startTime;
+        const progress = Math.min(1, elapsed / duration);
+        const ease = easeOutApple(progress);
+        window.scrollTo(0, Math.round(startY + distance * ease));
+
+        if (progress < 1) {
+          activeScrollAnimation = requestAnimationFrame(step);
+        } else {
+          activeScrollAnimation = null;
+        }
+      }
+
+      activeScrollAnimation = requestAnimationFrame(step);
+    }
+
     anchors.forEach((anchor) => {
       anchor.addEventListener('click', (e) => {
         const targetId = anchor.getAttribute('href');
         if (!targetId || targetId === '#' || targetId === '#top') {
           e.preventDefault();
-          window.scrollTo({ top: 0, behavior: 'smooth' });
+          const prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+          if (prefersReduced) {
+            window.scrollTo(0, 0);
+          } else {
+            smoothScrollTo(0, 600);
+          }
+          if (window.history && window.history.pushState) {
+            window.history.pushState(null, null, window.location.pathname);
+          }
           return;
         }
 
@@ -108,7 +161,17 @@
 
         if (targetEl) {
           e.preventDefault();
-          targetEl.scrollIntoView({ behavior: 'smooth' });
+          const navHeight = 72; // Clearance for frosted sticky navbar
+          const elementTop = targetEl.getBoundingClientRect().top + window.pageYOffset;
+          const targetY = Math.max(0, elementTop - navHeight);
+
+          const prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+          if (prefersReduced) {
+            window.scrollTo(0, targetY);
+          } else {
+            smoothScrollTo(targetY, 680);
+          }
+
           if (window.history && window.history.pushState) {
             window.history.pushState(null, null, targetId);
           }
@@ -116,26 +179,58 @@
       });
     });
 
-    // Sticky navbar frosted glass elevation on scroll
+    // Sticky navbar frosted glass elevation & dynamic scroll spy
     const navbar = document.querySelector('.navbar');
-    if (navbar) {
-      let isTicking = false;
-      const updateNavbar = () => {
-        if (window.scrollY > 16) {
+    const navLinks = document.querySelectorAll('.nav-links .nav-link');
+    const sections = Array.from(document.querySelectorAll('section[id], header[id]'));
+
+    let scrollTicking = false;
+    const updateScrollState = () => {
+      const scrollY = window.pageYOffset || document.documentElement.scrollTop;
+
+      // Navbar frosted elevation shadow
+      if (navbar) {
+        if (scrollY > 16) {
           navbar.classList.add('scrolled');
         } else {
           navbar.classList.remove('scrolled');
         }
-        isTicking = false;
-      };
-      window.addEventListener('scroll', () => {
-        if (!isTicking) {
-          window.requestAnimationFrame(updateNavbar);
-          isTicking = true;
+      }
+
+      // Scroll Spy for active nav link
+      if (sections.length > 0 && navLinks.length > 0) {
+        let currentSectionId = '';
+        const viewportCheckY = scrollY + 120;
+
+        for (let i = sections.length - 1; i >= 0; i--) {
+          const sec = sections[i];
+          if (sec.offsetTop <= viewportCheckY) {
+            currentSectionId = sec.id;
+            break;
+          }
         }
-      }, { passive: true });
-      updateNavbar();
-    }
+
+        navLinks.forEach((link) => {
+          const href = link.getAttribute('href');
+          if (href === `#${currentSectionId}`) {
+            link.classList.add('active');
+          } else {
+            link.classList.remove('active');
+          }
+        });
+      }
+
+      scrollTicking = false;
+    };
+
+    window.addEventListener('scroll', () => {
+      if (!scrollTicking) {
+        window.requestAnimationFrame(updateScrollState);
+        scrollTicking = true;
+      }
+    }, { passive: true });
+
+    updateScrollState();
   }
 
   /* ─── Apple Scroll-Triggered Reveal Animations ──────────────────── */
@@ -144,8 +239,8 @@
 
     // Staggered grid groups
     const staggerGroups = [
-      { selector: '.features-grid .feature-card', baseDelay: 60 },
-      { selector: '.pricing-grid .pricing-card', baseDelay: 80 },
+      { selector: '.features-grid .feature-card', baseDelay: 70 },
+      { selector: '.pricing-grid .pricing-card', baseDelay: 90 },
       { selector: '.faq-accordion .faq-item', baseDelay: 50 },
       { selector: '.step-list li', baseDelay: 60 }
     ];
@@ -160,9 +255,19 @@
       });
     });
 
+    // Section headers reveal hierarchy: tag -> title -> subtitle
+    document.querySelectorAll('.section-header').forEach(header => {
+      const tag = header.querySelector('.section-tag');
+      const title = header.querySelector('.section-title');
+      const subtitle = header.querySelector('.section-subtitle');
+      if (tag) tag.classList.add('reveal-init');
+      if (title) title.classList.add('reveal-init');
+      if (subtitle) subtitle.classList.add('reveal-init');
+    });
+
     // Single reveal elements
     const singleElements = document.querySelectorAll(
-      '.section-header, .upi-banner, .install-method-card, .footer-top'
+      '.upi-banner, .install-method-card, .footer-top'
     );
     singleElements.forEach(el => {
       el.classList.add('reveal-init');
@@ -185,12 +290,45 @@
       });
     }, {
       rootMargin: '0px 0px -40px 0px',
-      threshold: 0.1
+      threshold: 0.12
     });
 
     document.querySelectorAll('.reveal-init').forEach(el => {
       revealObserver.observe(el);
     });
+  }
+
+  /* ─── Apple-Inspired Subtle Ambient Depth (Parallax) ─────────────── */
+  function initAmbientDepth() {
+    const prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (prefersReducedMotion) return;
+
+    const glowTop = document.querySelector('.glow-top');
+    const glowRight = document.querySelector('.glow-right');
+    if (!glowTop && !glowRight) return;
+
+    let ticking = false;
+
+    function onScroll() {
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          const scrollY = window.pageYOffset || document.documentElement.scrollTop;
+          // Very gentle, fractional depth translation that stops after first screens
+          if (scrollY < 2600) {
+            if (glowTop) {
+              glowTop.style.transform = `translate3d(0, ${Math.round(scrollY * 0.08)}px, 0)`;
+            }
+            if (glowRight) {
+              glowRight.style.transform = `translate3d(0, ${Math.round(-scrollY * 0.05)}px, 0)`;
+            }
+          }
+          ticking = false;
+        });
+        ticking = true;
+      }
+    }
+
+    window.addEventListener('scroll', onScroll, { passive: true });
   }
 
   /* ─── FAQ Accordion (Single-Open Focus) ─────────────────────────── */

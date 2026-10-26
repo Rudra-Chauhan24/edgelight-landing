@@ -122,6 +122,7 @@
 
 html {
   scroll-behavior: smooth;
+  scroll-padding-top: 72px;
   color-scheme: dark;
 }
 
@@ -130,7 +131,7 @@ html[data-theme="light"] {
 }
 
 section[id], header[id] {
-  scroll-margin-top: 84px;
+  scroll-margin-top: 72px;
 }
 
 body {
@@ -313,6 +314,25 @@ body {
 .nav-link:focus-visible {
   outline: 2px solid var(--accent-amber-light);
   outline-offset: 2px;
+}
+
+.nav-link.active {
+  color: var(--text-primary);
+  background: var(--btn-secondary-bg);
+  position: relative;
+}
+
+.nav-link.active::after {
+  content: '';
+  position: absolute;
+  bottom: 2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 14px;
+  height: 2px;
+  border-radius: var(--radius-pill);
+  background: var(--accent-amber-light);
+  transition: width 240ms var(--ease-spring);
 }
 
 .nav-cta {
@@ -1017,20 +1037,25 @@ body {
   padding: 28px;
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
-  transition: transform var(--duration-fast) var(--ease-spring),
-              border-color var(--duration-fast) ease,
-              box-shadow var(--duration-fast) ease,
-              background var(--duration-fast) ease;
+  transition: transform 320ms cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 240ms ease,
+              box-shadow 320ms ease,
+              background 240ms ease;
   position: relative;
   display: flex;
   flex-direction: column;
 }
 
 .feature-card:hover {
-  transform: translateY(-3px);
+  transform: translateY(-4px);
   border-color: var(--border-highlight);
   box-shadow: var(--shadow-card);
   background: var(--bg-card-hover);
+}
+
+.feature-card:active {
+  transform: translateY(-2px) scale(0.992);
+  transition-duration: 100ms;
 }
 
 .card-icon-wrap {
@@ -1113,15 +1138,20 @@ body {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  transition: transform var(--duration-fast) var(--ease-spring),
-              border-color var(--duration-fast) ease,
-              box-shadow var(--duration-fast) ease;
+  transition: transform 320ms cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 240ms ease,
+              box-shadow 320ms ease;
 }
 
 .pricing-card:hover {
-  transform: translateY(-3px);
+  transform: translateY(-4px);
   border-color: var(--border-highlight);
   box-shadow: var(--shadow-card-hover);
+}
+
+.pricing-card:active {
+  transform: translateY(-2px) scale(0.992);
+  transition-duration: 100ms;
 }
 
 .pricing-card.popular {
@@ -1640,15 +1670,36 @@ kbd {
 /* ─── Apple Scroll-Triggered Reveal Animations ──────────────────── */
 .reveal-init {
   opacity: 0;
-  transform: translateY(22px);
-  transition: opacity 650ms cubic-bezier(0.16, 1, 0.3, 1),
-              transform 650ms cubic-bezier(0.16, 1, 0.3, 1);
+  transform: translateY(24px);
+  transition: opacity 700ms cubic-bezier(0.16, 1, 0.3, 1),
+              transform 700ms cubic-bezier(0.16, 1, 0.3, 1);
   will-change: opacity, transform;
 }
 
 .reveal-visible {
   opacity: 1 !important;
   transform: translateY(0) !important;
+}
+
+/* Staggered Section Header Elements */
+.section-header .section-tag.reveal-init {
+  transform: translateY(14px);
+  transition-delay: 0ms;
+}
+
+.section-header .section-title.reveal-init {
+  transform: translateY(18px);
+  transition-delay: 60ms;
+}
+
+.section-header .section-subtitle.reveal-init {
+  transform: translateY(22px);
+  transition-delay: 120ms;
+}
+
+/* Ambient glow subtle parallax */
+.glow-sphere {
+  will-change: transform;
 }
 
 /* ─── Accessibility: Reduced Motion ────────────────────────────── */
@@ -1661,6 +1712,9 @@ kbd {
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+  html {
+    scroll-behavior: auto !important;
+  }
   .glow-top,
   .glow-right,
   .navbar,
@@ -1669,8 +1723,10 @@ kbd {
   .hero-subtitle,
   .hero-actions,
   .hero-meta,
-  .product-preview-wrap,
-  .reveal-init {
+  .reveal-init,
+  .section-tag,
+  .section-title,
+  .section-subtitle {
     animation: none !important;
     opacity: 1 !important;
     transform: none !important;
